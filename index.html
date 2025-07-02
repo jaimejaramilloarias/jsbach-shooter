@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>JS Bach Shooter</title>
+  <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
+  <style>
+    body { margin: 0; background: #333; }
+    #game-container {
+      width: 1200px;
+      height: 800px;
+      margin: 0 auto;
+    }
+    #sound-hint {
+      color: #fff;
+      font-family: monospace;
+      font-size: 24px;
+      text-align: center;
+      width: 100%;
+      position: absolute;
+      top: 320px;
+      left: 0;
+      z-index: 10;
+      pointer-events: none;
+      text-shadow: 0 2px 8px #000;
+      display: none;
+    }
+    audio {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div id="game-container"></div>
+  <div id="sound-hint">🔊 Click or press any key to enable music!</div>
+  <!-- Música de fondo (empieza muteada por autoplay, se activa con interacción) -->
+  <audio id="bgmusic" src="assets/music.mp3" autoplay loop muted></audio>
+
+  <script>
+    // Mostrar aviso de sonido
+    document.getElementById('sound-hint').style.display = 'block';
+    // Habilita sonido al primer clic o tecla
+    function enableAudio() {
+      var audio = document.getElementById('bgmusic');
+      audio.muted = false;
+      audio.play();
+      document.getElementById('sound-hint').style.display = 'none';
+      // Para Phaser: reanuda contexto de audio si es necesario
+      if (window.Phaser && Phaser.Sound && Phaser.Sound.Context) {
+        try {
+          Phaser.Sound.Context.getAudioContext().resume();
+        } catch (e) {}
+      }
+      window.removeEventListener('click', enableAudio);
+      window.removeEventListener('keydown', enableAudio);
+    }
+    window.addEventListener('click', enableAudio, { once: true });
+    window.addEventListener('keydown', enableAudio, { once: true });
+  </script>
+
+  <script src="game.js"></script>
+</body>
+</html>
