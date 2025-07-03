@@ -1,10 +1,9 @@
-// game.js DEFINITIVO CORREGIDO: bug de reinicio y sonido extra
-
 let player, cursors, shootKey;
 let bullets, enemies, lifeGroup, itemsGroup;
 let score = 0, lives = 3;
-let scoreText, livesText;
+let scoreText, livesText, highScoreText;
 let coverImage, gameStarted = false;
+let highScore = localStorage.getItem('bachHighScore') || 0;
 let startHandler, restartHandler;
 
 const config = {
@@ -29,7 +28,6 @@ Object.assign(container.style, {
   position: 'relative'
 });
 
-// ----------- CONTROL MÚSICA FONDO --------------
 function playMusic() {
   var audio = document.getElementById('bgmusic');
   if (audio) { audio.muted = false; audio.play(); }
@@ -38,7 +36,6 @@ function pauseMusic() {
   var audio = document.getElementById('bgmusic');
   if (audio) { audio.pause(); }
 }
-// -----------------------------------------------
 
 function preload() {
   this.load.image('background', 'assets/fondo.png');
@@ -47,8 +44,8 @@ function preload() {
   this.load.image('zombie', 'assets/zombie.png');
   this.load.image('clefC', 'assets/clefC.png');
   this.load.image('cuarta', 'assets/cuarta_au.png');
-  this.load.image('octava', 'assets/octavas.png');
-  this.load.image('quinta', 'assets/quintas.png');
+  this.load.image('octavas', 'assets/octavas.png'); // en plural!
+  this.load.image('quintas', 'assets/quintas.png'); // en plural!
   this.load.image('sexta', 'assets/sexta.png');
   this.load.image('tercera', 'assets/tercera.png');
   // Bala verde
@@ -57,7 +54,6 @@ function preload() {
   g.generateTexture('bullet', 20, 4);
   g.destroy();
 
-  // ----------- EFECTOS DE SONIDO --------------
   this.load.audio('laser', 'assets/laser_gun.mp3');
   this.load.audio('zombie_down', 'assets/zombie_down.mp3');
   this.load.audio('zombie_escaped', 'assets/zombie_escaped.mp3');
@@ -71,7 +67,6 @@ function create() {
     .setDisplaySize(config.width, config.height)
     .setAlpha(0.7);
 
-  // Jugador
   const pImg = this.textures.get('bach').getSourceImage();
   const pRatio = pImg.width / pImg.height;
   player = this.physics.add.image(100, config.height / 2, 'bach')
@@ -89,18 +84,18 @@ function create() {
 
   scoreText = this.add.text(16, 16, 'Score: 0', { fontFamily: 'monospace', fontSize: '48px', fill: '#0f0' });
   livesText = this.add.text(16, 80, 'Lives: 3', { fontFamily: 'monospace', fontSize: '40px', fill: '#f00' });
+  highScore = localStorage.getItem('bachHighScore') || 0;
+  highScoreText = this.add.text(16, 140, 'High Score: ' + highScore, { fontFamily: 'monospace', fontSize: '40px', fill: '#ff0' });
 
   this.lastFired = 0;
   this.fireRate = 133;
 
-  // ----------- SONIDOS ----------
   this.shootSound = this.sound.add('laser');
   this.zombieDownSound = this.sound.add('zombie_down');
   this.zombieEscapedSound = this.sound.add('zombie_escaped');
   this.itemCollectedSound = this.sound.add('item_collected');
   this.lifeCollectedSound = this.sound.add('life_collected');
 
-  // COLISIONES
   this.physics.add.overlap(bullets, enemies, hitZombie, null, this);
   this.physics.add.overlap(player, enemies, hitPlayer, null, this);
   this.physics.add.overlap(player, lifeGroup, collectLife, null, this);
@@ -160,10 +155,12 @@ function mostrarPortadaGameOver() {
 
   restartHandler = () => {
     if (coverImage) coverImage.destroy();
-    gameStarted = false; // <--- ¡CORREGIDO! Esto soluciona el bug.
+    gameStarted = false;
     this.scene.restart();
     score = 0;
     lives = 3;
+    highScore = localStorage.getItem('bachHighScore') || 0;
+    if (highScoreText) highScoreText.setText('High Score: ' + highScore);
     playMusic();
     window.removeEventListener('keydown', restartHandler);
     window.removeEventListener('pointerdown', restartHandler);
@@ -207,6 +204,7 @@ function update(time) {
       if (this.zombieEscapedSound) this.zombieEscapedSound.play();
       const flash = this.add.rectangle(config.width / 2, config.height / 2, config.width, config.height, 0xff0000, 0.2);
       this.tweens.add({ targets: flash, alpha: 0, duration: 500, onComplete: () => flash.destroy() });
+      updateHighScore();
     }
   });
   [lifeGroup, itemsGroup].forEach(grp =>
@@ -216,37 +214,39 @@ function update(time) {
 }
 
 function spawnItem() {
-  const types = [
-    ...Array(20).fill('8sp'),
-    ...Array(20).fill('5sp'),
-    '3', '6', '4+', 'clefC'
-  ];
+  const types = ['8sp', '5sp', '3', '6', '4+', 'clefC'];
   const type = Phaser.Math.RND.pick(types);
   const fromLeft = Math.random() < 0.5;
-  const baseSize = 60;
-  const size = (type === '8sp' || type === '5sp') ? baseSize * 1.728 : baseSize;
-  const x = fromLeft ? -size : config.width + size;
-  const y = Phaser.Math.Between(size, config.height - size);
-  const vel = (fromLeft ? 1 : -1) * Phaser.Math.Between(300, 600);
+
+  // 30% más pequeñas respecto a un baseSize típico (por ejemplo 80)
+  const baseSize = 56; // 80 * 0.7 = 56
+  const x = fromLeft ? -baseSize : config.width + baseSize;
+  const y = Phaser.Math.Between(baseSize, config.height - baseSize);
+
+  // Velocidad completamente aleatoria
+  const vel = (fromLeft ? 1 : -1) * Phaser.Math.Between(80, 320);
 
   if (type === 'clefC') {
     const life = lifeGroup.create(x, y, 'clefC');
     const img = this.textures.get('clefC').getSourceImage();
     const r = img.width / img.height;
-    life.setDisplaySize(size * r, size).setOrigin(0.5);
+    life.setDisplaySize(baseSize * r, baseSize).setOrigin(0.5);
     life.body.allowGravity = false;
     life.setVelocityX(vel);
   } else {
-    const map = { '8sp': 'octava', '5sp': 'quinta', '3': 'tercera', '6': 'sexta', '4+': 'cuarta' };
+    const map = { '8sp': 'octavas', '5sp': 'quintas', '3': 'tercera', '6': 'sexta', '4+': 'cuarta' };
     const key = map[type];
     const img = this.textures.get(key).getSourceImage();
     const r = img.width / img.height;
     const item = itemsGroup.create(x, y, key)
-      .setDisplaySize(size * r, size).setOrigin(0.5);
+      .setDisplaySize(baseSize * r, baseSize).setOrigin(0.5);
     item.body.allowGravity = false;
     item.setVelocityX(vel);
   }
 }
+
+
+
 
 function spawnZombie() {
   const fromLeft = Math.random() < 0.5;
@@ -269,6 +269,7 @@ function hitZombie(b, z) {
   score += 10;
   scoreText.setText('Score: ' + score);
   if (this.zombieDownSound) this.zombieDownSound.play();
+  updateHighScore();
 }
 
 function hitPlayer(p, h) {
@@ -278,6 +279,7 @@ function hitPlayer(p, h) {
   if (this.zombieEscapedSound) this.zombieEscapedSound.play();
   const flash = this.add.rectangle(config.width / 2, config.height / 2, config.width, config.height, 0xff0000, 0.2);
   this.tweens.add({ targets: flash, alpha: 0, duration: 500, onComplete: () => flash.destroy() });
+  updateHighScore();
   if (lives <= 0) {
     this.physics.pause();
     scoreText.setText('Game Over! Score: ' + score);
@@ -298,15 +300,24 @@ function collectItem(p, i) {
   i.destroy();
   let positive = true;
   switch (i.texture.key) {
-    case 'octava': score = Math.max(0, score - 8); positive = false; break;
-    case 'quinta': score = Math.max(0, score - 5); positive = false; break;
+    case 'octavas': score = Math.max(0, score - 8); positive = false; break;
+    case 'quintas': score = Math.max(0, score - 5); positive = false; break;
     case 'tercera': score += 3; break;
     case 'sexta': score += 6; break;
     case 'cuarta': score *= 2; break;
   }
   scoreText.setText('Score: ' + score);
   if (positive && this.itemCollectedSound) this.itemCollectedSound.play();
+  updateHighScore();
   const c = positive ? 0x00ff00 : 0xff0000;
   const flash = this.add.rectangle(config.width / 2, config.height / 2, config.width, config.height, c, 0.2);
   this.tweens.add({ targets: flash, alpha: 0, duration: 500, onComplete: () => flash.destroy() });
+}
+
+function updateHighScore() {
+  if (score > highScore) {
+    highScore = score;
+    localStorage.setItem('bachHighScore', highScore);
+    if (highScoreText) highScoreText.setText('High Score: ' + highScore);
+  }
 }
