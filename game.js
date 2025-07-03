@@ -1,3 +1,5 @@
+// game.js actualizado: high-score, items iguales y aleatorios
+
 let player, cursors, shootKey;
 let bullets, enemies, lifeGroup, itemsGroup;
 let score = 0, lives = 3;
@@ -44,8 +46,8 @@ function preload() {
   this.load.image('zombie', 'assets/zombie.png');
   this.load.image('clefC', 'assets/clefC.png');
   this.load.image('cuarta', 'assets/cuarta_au.png');
-  this.load.image('octavas', 'assets/octavas.png'); // en plural!
-  this.load.image('quintas', 'assets/quintas.png'); // en plural!
+  this.load.image('octavas', 'assets/octavas.png');
+  this.load.image('quintas', 'assets/quintas.png');
   this.load.image('sexta', 'assets/sexta.png');
   this.load.image('tercera', 'assets/tercera.png');
   // Bala verde
@@ -214,16 +216,15 @@ function update(time) {
 }
 
 function spawnItem() {
+  // --- ¡Todos del mismo tamaño y velocidad aleatoria! ---
   const types = ['8sp', '5sp', '3', '6', '4+', 'clefC'];
   const type = Phaser.Math.RND.pick(types);
   const fromLeft = Math.random() < 0.5;
-
-  // 30% más pequeñas respecto a un baseSize típico (por ejemplo 80)
-  const baseSize = 56; // 80 * 0.7 = 56
+  const baseSize = 56; // 30% más pequeños que 80
   const x = fromLeft ? -baseSize : config.width + baseSize;
   const y = Phaser.Math.Between(baseSize, config.height - baseSize);
 
-  // Velocidad completamente aleatoria
+  // Velocidad aleatoria entre 80 y 320 px/s
   const vel = (fromLeft ? 1 : -1) * Phaser.Math.Between(80, 320);
 
   if (type === 'clefC') {
@@ -244,9 +245,6 @@ function spawnItem() {
     item.setVelocityX(vel);
   }
 }
-
-
-
 
 function spawnZombie() {
   const fromLeft = Math.random() < 0.5;
