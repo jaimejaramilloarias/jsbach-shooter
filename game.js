@@ -1,11 +1,10 @@
-// game.js actualizado: high-score, items iguales y aleatorios
-
 let player, cursors, shootKey;
 let bullets, enemies, lifeGroup, itemsGroup;
 let score = 0, lives = 3;
-let scoreText, livesText, highScoreText;
+let scoreText, livesText, highScoreText, levelText;
 let coverImage, gameStarted = false;
 let highScore = localStorage.getItem('bachHighScore') || 0;
+let level = 1;
 let startHandler, restartHandler;
 
 const config = {
@@ -44,6 +43,7 @@ function preload() {
   this.load.image('cover', 'assets/cover.png');
   this.load.image('bach', 'assets/bach.png');
   this.load.image('zombie', 'assets/zombie.png');
+  this.load.image('dead_zombie', 'assets/dead_zombie.png'); // NUEVA IMAGEN
   this.load.image('clefC', 'assets/clefC.png');
   this.load.image('cuarta', 'assets/cuarta_au.png');
   this.load.image('octavas', 'assets/octavas.png');
@@ -88,6 +88,8 @@ function create() {
   livesText = this.add.text(16, 80, 'Lives: 3', { fontFamily: 'monospace', fontSize: '40px', fill: '#f00' });
   highScore = localStorage.getItem('bachHighScore') || 0;
   highScoreText = this.add.text(16, 140, 'High Score: ' + highScore, { fontFamily: 'monospace', fontSize: '40px', fill: '#ff0' });
+  level = 1;
+  levelText = this.add.text(16, 200, 'Level: 1', { fontFamily: 'monospace', fontSize: '40px', fill: '#00f' });
 
   this.lastFired = 0;
   this.fireRate = 133;
@@ -216,15 +218,13 @@ function update(time) {
 }
 
 function spawnItem() {
-  // --- ¡Todos del mismo tamaño y velocidad aleatoria! ---
   const types = ['8sp', '5sp', '3', '6', '4+', 'clefC'];
   const type = Phaser.Math.RND.pick(types);
   const fromLeft = Math.random() < 0.5;
-  const baseSize = 56; // 30% más pequeños que 80
+  const baseSize = 56;
   const x = fromLeft ? -baseSize : config.width + baseSize;
   const y = Phaser.Math.Between(baseSize, config.height - baseSize);
 
-  // Velocidad aleatoria entre 80 y 320 px/s
   const vel = (fromLeft ? 1 : -1) * Phaser.Math.Between(80, 320);
 
   if (type === 'clefC') {
@@ -250,7 +250,11 @@ function spawnZombie() {
   const fromLeft = Math.random() < 0.5;
   const x = fromLeft ? -80 : config.width + 80;
   const y = Phaser.Math.Between(80, config.height - 80);
-  const speedVal = Phaser.Math.Between(180, 420) * (fromLeft ? 1 : -1);
+
+  // Velocidad según el nivel
+  const baseMin = 180 + (level - 1) * 20;
+  const baseMax = 420 + (level - 1) * 30;
+  const speedVal = Phaser.Math.Between(baseMin, baseMax) * (fromLeft ? 1 : -1);
 
   const z = enemies.create(x, y, 'zombie');
   const img = this.textures.get('zombie').getSourceImage();
@@ -263,7 +267,16 @@ function spawnZombie() {
 
 function hitZombie(b, z) {
   b.destroy();
-  z.destroy();
+
+  // Cambia textura a muerto
+  z.setTexture('dead_zombie');
+  z.setVelocityX(0);
+
+  // Destruye tras 0.5 segundos (500ms)
+  this.time.delayedCall(500, () => {
+    if (z && z.active) z.destroy();
+  });
+
   score += 10;
   scoreText.setText('Score: ' + score);
   if (this.zombieDownSound) this.zombieDownSound.play();
@@ -317,5 +330,13 @@ function updateHighScore() {
     highScore = score;
     localStorage.setItem('bachHighScore', highScore);
     if (highScoreText) highScoreText.setText('High Score: ' + highScore);
+  }
+
+  // Level logic
+  let newLevel = Math.floor(score / 50000) + 1;
+  if (newLevel !== level) {
+    level = newLevel;
+    if (levelText) levelText.setText('Level: ' + level);
+    // Aquí podrías mostrar destello, animación, etc
   }
 }

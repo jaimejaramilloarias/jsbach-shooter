@@ -1,0 +1,25 @@
+{
+  "name": "jsbach-shooter",
+  "version": "1.0.0",
+  "description": "¡El shooter musical más épico de la historia!",
+  "main": "game.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jaimejaramilloarias/jsbach-shooter.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jaimejaramilloarias/jsbach-shooter/issues"
+  },
+  "homepage": "https://github.com/jaimejaramilloarias/jsbach-shooter#readme",
+  "dependencies": {
+    "@capacitor/android": "^7.4.0",
+    "@capacitor/cli": "^7.4.0",
+    "@capacitor/core": "^7.4.0"
+  }
+}
