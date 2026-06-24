@@ -19,7 +19,9 @@
     music: document.getElementById('bgmusic'),
     touchZone: document.getElementById('touch-zone'),
     touchKnob: document.getElementById('touch-knob'),
-    touchFire: document.getElementById('touch-fire')
+    touchFire: document.getElementById('touch-fire'),
+    shell: document.getElementById('game-shell'),
+    orientationStart: document.getElementById('orientation-start-button')
   };
 
   const state = {
@@ -49,12 +51,14 @@
     touchFire: false
   };
 
+  const mobileQuery = window.matchMedia('(pointer: coarse), (max-width: 760px), (max-height: 520px)');
   let sceneRef;
   let player;
   let cursors;
   let keys;
   let groups = {};
   let ui = {};
+  let game;
 
   const enemyTypes = {
     counterpoint: { hp: 1, speed: 240, score: 25, size: 76, tint: 0xffffff, wobble: 0 },
@@ -269,6 +273,8 @@
     showBanner(sceneRef, 'Oleada 1', `${levels[0].name}: sobrevive y encadena intervalos consonantes`);
     sceneRef.physics.resume();
     unlockMusic();
+    refreshViewportMode();
+    resizeGame();
   }
 
   function endGame(scene) {
@@ -1129,9 +1135,73 @@
     });
   }
 
+  function isMobileLayout() {
+    return mobileQuery.matches;
+  }
+
+  async function requestImmersiveMode() {
+    if (!isMobileLayout()) return;
+
+    document.body.classList.add('mobile-game');
+
+    if (!document.fullscreenElement && dom.shell.requestFullscreen) {
+      try {
+        await dom.shell.requestFullscreen({ navigationUI: 'hide' });
+      } catch (error) {
+        // Some mobile browsers only allow fullscreen in installed/PWA mode.
+      }
+    }
+
+    if (screen.orientation && screen.orientation.lock) {
+      try {
+        await screen.orientation.lock('landscape');
+      } catch (error) {
+        // iOS Safari and some Android browsers do not expose orientation lock.
+      }
+    }
+
+    resizeGame();
+  }
+
+  function startFromUserGesture() {
+    requestImmersiveMode();
+    startGame();
+  }
+
+  function refreshViewportMode() {
+    document.body.classList.toggle('mobile-game', isMobileLayout());
+  }
+
+  function resizeGame() {
+    if (!game || !game.scale) return;
+    game.scale.refresh();
+  }
+
+  function setupViewportMode() {
+    refreshViewportMode();
+    resizeGame();
+
+    const delayedResize = () => {
+      refreshViewportMode();
+      window.setTimeout(resizeGame, 60);
+      window.setTimeout(resizeGame, 260);
+    };
+
+    window.addEventListener('resize', delayedResize);
+    window.addEventListener('orientationchange', delayedResize);
+    document.addEventListener('fullscreenchange', delayedResize);
+
+    if (mobileQuery.addEventListener) {
+      mobileQuery.addEventListener('change', delayedResize);
+    } else if (mobileQuery.addListener) {
+      mobileQuery.addListener(delayedResize);
+    }
+  }
+
   function setupDomEvents() {
-    dom.start.addEventListener('click', startGame);
-    dom.restart.addEventListener('click', startGame);
+    dom.start.addEventListener('click', startFromUserGesture);
+    dom.restart.addEventListener('click', startFromUserGesture);
+    dom.orientationStart.addEventListener('click', startFromUserGesture);
     dom.pause.addEventListener('click', togglePause);
     dom.mute.addEventListener('click', () => {
       state.muted = !state.muted;
@@ -1139,9 +1209,8 @@
       if (!state.muted && state.phase === 'playing') unlockMusic();
     });
     dom.fullscreen.addEventListener('click', () => {
-      const shell = document.getElementById('game-shell');
-      if (!document.fullscreenElement && shell.requestFullscreen) {
-        shell.requestFullscreen().catch(() => {});
+      if (!document.fullscreenElement && dom.shell.requestFullscreen) {
+        requestImmersiveMode();
       } else if (document.exitFullscreen) {
         document.exitFullscreen().catch(() => {});
       }
@@ -1160,6 +1229,7 @@
     });
 
     setupTouchControls();
+    setupViewportMode();
   }
 
   function exposeDebugApi() {
@@ -1301,6 +1371,7 @@
       activePointer = event.pointerId;
       dom.touchZone.setPointerCapture(event.pointerId);
       updateStick(event);
+      requestImmersiveMode();
       unlockMusic();
     }, { passive: false });
 
@@ -1311,6 +1382,7 @@
     dom.touchFire.addEventListener('pointerdown', (event) => {
       event.preventDefault();
       input.touchFire = true;
+      requestImmersiveMode();
       unlockMusic();
     }, { passive: false });
 
@@ -1341,7 +1413,7 @@
       }
     },
     scale: {
-      mode: Phaser.Scale.FIT,
+      mode: Phaser.Scale.ENVELOP,
       autoCenter: Phaser.Scale.CENTER_BOTH
     },
     scene: {
@@ -1352,5 +1424,5 @@
     }
   };
 
-  new Phaser.Game(config);
+  game = new Phaser.Game(config);
 })();
