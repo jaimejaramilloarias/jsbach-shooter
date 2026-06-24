@@ -1,25 +1,26 @@
 {
   "name": "jsbach-shooter",
-  "version": "1.0.0",
-  "description": "¡El shooter musical más épico de la historia!",
+  "version": "2.0.0",
+  "description": "Shooter musical web: J.S. Bach vs Zombie Mozart.",
   "main": "game.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "python3 -m http.server 4173",
+    "test": "node scripts/smoke-test.mjs"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/jaimejaramilloarias/jsbach-shooter.git"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "phaser",
+    "game",
+    "music",
+    "shooter"
+  ],
+  "author": "Jaime Jaramillo Arias",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/jaimejaramilloarias/jsbach-shooter/issues"
   },
-  "homepage": "https://github.com/jaimejaramilloarias/jsbach-shooter#readme",
-  "dependencies": {
-    "@capacitor/android": "^7.4.0",
-    "@capacitor/cli": "^7.4.0",
-    "@capacitor/core": "^7.4.0"
-  }
+  "homepage": "https://jaimejaramilloarias.github.io/jsbach-shooter/"
 }

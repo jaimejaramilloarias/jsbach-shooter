@@ -1,0 +1,17 @@
+{
+  "name": "J.S. Bach vs Zombie Mozart",
+  "short_name": "Bach Shooter",
+  "description": "Shooter musical web gratuito hecho con Phaser.",
+  "start_url": ".",
+  "display": "fullscreen",
+  "background_color": "#111318",
+  "theme_color": "#111318",
+  "icons": [
+    {
+      "src": "assets/cover.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

@@ -1,54 +1,57 @@
-# 🎻 J.S. Bach vs Zombie Mozart
+# J.S. Bach vs Zombie Mozart
 
-¡El shooter musical más épico de la historia!
+Shooter musical hecho con Phaser 3. Juegas como J.S. Bach contra oleadas de Zombie Mozart, recolectando intervalos para subir score, activar poderes y sostener el combo.
 
-<img src="assets/cover.png" alt="JS Bach vs Zombie Mozart" width="640">
+![J.S. Bach vs Zombie Mozart](assets/cover.png)
 
----
+## Jugar
 
-## 🕹️ Juega aquí:
+[Abrir juego en GitHub Pages](https://jaimejaramilloarias.github.io/jsbach-shooter/)
 
-👉 [¡Abrir juego en GitHub Pages!](https://jaimejaramilloarias.github.io/jsbach-shooter/)
+## Controles
 
----
+- Moverse: flechas o WASD
+- Disparar: `B` o espacio
+- Pausar: `P`
+- Audio: `M`
+- Tactil: joystick virtual + boton `FIRE`
 
-## 📖 Descripción
+## Mejoras incluidas
 
-Juega como **J.S. Bach** en una batalla pixelada contra hordas de **Mozarts zombis**.  
-Corre, dispara y salta para evitar obstáculos musicales y recolecta símbolos para ganar puntos y vidas.  
-¡Cuida tus vidas y mejora tu puntaje!  
-Hecho para que puedas disfrutarlo desde cualquier navegador.
+- Escalado responsive con Phaser `FIT`.
+- Menu, pausa y game over reales.
+- HUD redisenado con score, vidas, oleada, combo, record y poderes activos.
+- Oleadas progresivas con tempo creciente y cambio de escenario cada seis oleadas.
+- Cinco niveles con fondos 8-bit de baja resolucion: Aula de contrapunto, Iglesia de Arnstadt, Corte de Weimar, Sala de la fuga y Leipzig nocturna como final.
+- Tipos de enemigos: normal, rapido, resistente, movimiento en canon y jefe cada 5 oleadas.
+- Power-ups musicales:
+  - Tercera: puntos y combo.
+  - Sexta: escudo breve.
+  - Cuarta aumentada: disparo triple.
+  - Clave de do: vida extra.
+  - Quintas/octavas: penalizaciones.
+- Audio controlado con mute y manejo seguro de autoplay.
+- Controles tactiles para telefono o tablet.
+- Metadata social, manifest web y boton de pantalla completa para publicacion web.
+- Phaser incluido localmente en `vendor/phaser.min.js`, sin depender de CDN durante la partida.
+- Limpieza de `node_modules` y archivos `.DS_Store` fuera del repo.
 
----
+## Desarrollo local
 
-## 🎮 Controles
+```bash
+npm start
+```
 
-- **Moverse:** Flechas del teclado (↑ ↓ ← →)
-- **Disparar:** Tecla `B` (mantén presionado para disparo continuo)
-- **Comenzar o reiniciar:** Clic o cualquier tecla
-- **Evita o destruye a los zombies para sobrevivir!**
+Luego abre:
 
----
+```text
+http://127.0.0.1:4173/
+```
 
-## 🎵 Créditos de audio e imágenes
+## Verificacion
 
-- Diseño, pixel art, mecánica y sonidos:  
-  **Jaime Jaramillo Arias**
-- Música de fondo y efectos:  
-  FreeSound.org / Libre uso
+```bash
+npm test
+```
 
----
-
-## ✨ ¿Qué tecnologías usa?
-
-- [Phaser 3](https://phaser.io/)
-- HTML5, JavaScript, CSS
-- GitHub Pages para hosting gratuito
-
----
-
-## 🚀 Cómo jugar en local
-
-1. Descarga este repositorio:  
-   ```bash
-   git clone https://github.com/jaimejaramilloarias/jsbach-shooter.git
+La prueba smoke valida que existan los archivos principales, que el HTML cargue Phaser y `game.js`, y que el juego conserve las piezas esperadas: responsive scale, HUD, controles tactiles, oleadas, jefe, power-ups y audio seguro.
